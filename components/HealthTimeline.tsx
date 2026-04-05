@@ -88,7 +88,7 @@ export default function HealthTimeline({ analyses }: Props) {
 
       {/* Moisture & pH trend if data available */}
       {sorted.some(a => a.moisture_reading != null || a.ph_reading != null) && (
-        <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-2 gap-4">
+        <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-2 gap-4">
           {sorted.some(a => a.moisture_reading != null) && (() => {
             const readings = sorted.filter(a => a.moisture_reading != null)
             const first = readings[0].moisture_reading!

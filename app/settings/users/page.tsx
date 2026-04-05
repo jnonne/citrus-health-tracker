@@ -100,7 +100,7 @@ export default function UsersPage() {
       {/* Add user form */}
       <form onSubmit={addUser} className="bg-white border border-gray-200 rounded-2xl p-5 mb-6 space-y-4">
         <h2 className="font-semibold text-gray-800">Add New User</h2>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-gray-600 mb-1">Email *</label>
             <input
@@ -141,7 +141,7 @@ export default function UsersPage() {
             <div key={user.email} className="bg-white border border-gray-200 rounded-2xl p-4">
               {editingEmail === user.email ? (
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">Email</label>
                       <p className="text-sm text-gray-500 px-3 py-2">{user.email}</p>

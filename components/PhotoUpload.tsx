@@ -57,7 +57,7 @@ export default function PhotoUpload({ label, accept = 'image/*', multiple = true
       </div>
 
       {files.length > 0 && (
-        <div className="grid grid-cols-3 gap-2 mt-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
           {files.map((file, i) => (
             <div key={i} className="relative group">
               <img

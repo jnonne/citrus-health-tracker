@@ -23,6 +23,8 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
   const [lastWatered, setLastWatered] = useState(initial.last_watered ?? '')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [reanalyzing, setReanalyzing] = useState(false)
+  const [reanalyzeError, setReanalyzeError] = useState('')
 
   const urgency = URGENCY_CONFIG[analysis.ai_urgency]
   const date = new Date(analysis.created_at).toLocaleDateString('en-US', {
@@ -32,6 +34,9 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
   async function saveEdits() {
     setSaving(true)
     setSaveError('')
+    const moistureChanged = moisture !== (analysis.moisture_reading?.toString() ?? '')
+    const phChanged = ph !== (analysis.ph_reading?.toString() ?? '')
+
     const res = await fetch(`/api/analysis/${analysis.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -48,9 +53,29 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
       return
     }
     const updated = await res.json()
-    setAnalysis({ ...analysis, ...updated })
+    setAnalysis(prev => ({ ...prev, ...updated }))
     setEditing(false)
     setSaving(false)
+
+    // Auto-reanalyze when moisture or pH readings change
+    if (moistureChanged || phChanged) {
+      setReanalyzing(true)
+      setReanalyzeError('')
+      try {
+        const reRes = await fetch(`/api/analysis/${analysis.id}/reanalyze`, { method: 'POST' })
+        if (reRes.ok) {
+          const aiData = await reRes.json()
+          setAnalysis(prev => ({ ...prev, ...aiData }))
+        } else {
+          const d = await reRes.json()
+          setReanalyzeError(d.error ?? 'Re-analysis failed')
+        }
+      } catch {
+        setReanalyzeError('Re-analysis failed')
+      } finally {
+        setReanalyzing(false)
+      }
+    }
   }
 
   function cancelEdit() {
@@ -86,7 +111,7 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
       {editing ? (
         <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-3">
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Edit Readings</p>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Moisture %</label>
               <input
@@ -155,6 +180,22 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
         </div>
       )}
 
+      {/* Re-analysis status */}
+      {reanalyzing && (
+        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700">
+          <svg className="animate-spin h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+          </svg>
+          Re-analyzing with AI based on updated readings…
+        </div>
+      )}
+      {reanalyzeError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+          Re-analysis failed: {reanalyzeError}
+        </div>
+      )}
+
       {/* User concerns */}
       {analysis.user_concerns && (
         <div className="bg-white rounded-xl p-3 border border-gray-200">
@@ -188,7 +229,7 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
       {showPhotos && analysis.photos.length > 0 && (
         <div>
           <h4 className="text-sm font-semibold text-gray-600 mb-2">Photos</h4>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {analysis.photos.map((photo) => (
               <a key={photo.id} href={photo.public_url} target="_blank" rel="noopener noreferrer">
                 <img
