@@ -10,6 +10,7 @@ export default function Header() {
   const supabase = createSupabaseBrowserClient()
   const [user, setUser] = useState<{ email: string; name: string; avatar?: string } | null>(null)
   const [isTrusted, setIsTrusted] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -20,6 +21,8 @@ export default function Header() {
           name: user.user_metadata?.full_name ?? user.user_metadata?.name ?? user.email ?? '',
           avatar: user.user_metadata?.avatar_url,
         })
+        // Check admin status
+        fetch('/api/admin/users').then(r => { if (r.ok) setIsAdmin(true) })
       }
     })
 
@@ -80,6 +83,13 @@ export default function Header() {
                   Trusted Devices
                 </button>
               </Link>
+              {isAdmin && (
+                <Link href="/settings/users" onClick={() => setMenuOpen(false)}>
+                  <button className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors">
+                    Manage Users
+                  </button>
+                </Link>
+              )}
               <button
                 onClick={signOut}
                 className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-100"

@@ -1,3 +1,6 @@
+'use client'
+
+import { useState } from 'react'
 import { Analysis } from '@/lib/types'
 
 const URGENCY_CONFIG = {
@@ -12,45 +15,145 @@ interface Props {
   showPhotos?: boolean
 }
 
-export default function AnalysisResult({ analysis, showPhotos = true }: Props) {
+export default function AnalysisResult({ analysis: initial, showPhotos = true }: Props) {
+  const [analysis, setAnalysis] = useState(initial)
+  const [editing, setEditing] = useState(false)
+  const [moisture, setMoisture] = useState(initial.moisture_reading?.toString() ?? '')
+  const [ph, setPh] = useState(initial.ph_reading?.toString() ?? '')
+  const [lastWatered, setLastWatered] = useState(initial.last_watered ?? '')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+
   const urgency = URGENCY_CONFIG[analysis.ai_urgency]
   const date = new Date(analysis.created_at).toLocaleDateString('en-US', {
     month: 'long', day: 'numeric', year: 'numeric',
   })
+
+  async function saveEdits() {
+    setSaving(true)
+    setSaveError('')
+    const res = await fetch(`/api/analysis/${analysis.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        moisture_reading: moisture,
+        ph_reading: ph,
+        last_watered: lastWatered,
+      }),
+    })
+    if (!res.ok) {
+      const d = await res.json()
+      setSaveError(d.error ?? 'Save failed')
+      setSaving(false)
+      return
+    }
+    const updated = await res.json()
+    setAnalysis({ ...analysis, ...updated })
+    setEditing(false)
+    setSaving(false)
+  }
+
+  function cancelEdit() {
+    setMoisture(analysis.moisture_reading?.toString() ?? '')
+    setPh(analysis.ph_reading?.toString() ?? '')
+    setLastWatered(analysis.last_watered ?? '')
+    setSaveError('')
+    setEditing(false)
+  }
 
   return (
     <div className={`rounded-2xl border ${urgency.border} ${urgency.bg} p-5 space-y-4`}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <span className="text-sm text-gray-500">{date}</span>
-        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${urgency.bg} ${urgency.text} border ${urgency.border}`}>
-          {urgency.icon} {urgency.label}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${urgency.bg} ${urgency.text} border ${urgency.border}`}>
+            {urgency.icon} {urgency.label}
+          </span>
+          {!editing && (
+            <button
+              onClick={() => setEditing(true)}
+              className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded-lg hover:bg-white/60 transition-colors"
+              title="Edit readings"
+            >
+              ✏️ Edit
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Readings */}
-      <div className="flex gap-4">
-        {analysis.moisture_reading !== null && analysis.moisture_reading !== undefined && (
-          <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
-            <p className="text-xs text-gray-500">Moisture</p>
-            <p className="text-2xl font-bold text-blue-600">{analysis.moisture_reading}%</p>
+      {/* Readings — view or edit */}
+      {editing ? (
+        <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-3">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Edit Readings</p>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Moisture %</label>
+              <input
+                type="number" min="0" max="100" step="0.1"
+                value={moisture} onChange={e => setMoisture(e.target.value)}
+                placeholder="—"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">pH</label>
+              <input
+                type="number" min="0" max="14" step="0.1"
+                value={ph} onChange={e => setPh(e.target.value)}
+                placeholder="—"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Last Watered</label>
+              <input
+                type="date"
+                value={lastWatered}
+                onChange={e => setLastWatered(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
           </div>
-        )}
-        {analysis.ph_reading !== null && analysis.ph_reading !== undefined && (
-          <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
-            <p className="text-xs text-gray-500">pH</p>
-            <p className="text-2xl font-bold text-purple-600">{analysis.ph_reading}</p>
+          {saveError && <p className="text-xs text-red-600">{saveError}</p>}
+          <div className="flex gap-2">
+            <button onClick={saveEdits} disabled={saving}
+              className="bg-green-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50 transition-colors">
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+            <button onClick={cancelEdit}
+              className="border border-gray-300 px-4 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+              Cancel
+            </button>
           </div>
-        )}
-        {analysis.last_watered && (
-          <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
-            <p className="text-xs text-gray-500">Last Watered</p>
-            <p className="text-sm font-semibold text-gray-700">
-              {new Date(analysis.last_watered).toLocaleDateString()}
-            </p>
-          </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div className="flex gap-4 flex-wrap">
+          {analysis.moisture_reading !== null && analysis.moisture_reading !== undefined && (
+            <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
+              <p className="text-xs text-gray-500">Moisture</p>
+              <p className="text-2xl font-bold text-blue-600">{analysis.moisture_reading}%</p>
+            </div>
+          )}
+          {analysis.ph_reading !== null && analysis.ph_reading !== undefined && (
+            <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
+              <p className="text-xs text-gray-500">pH</p>
+              <p className="text-2xl font-bold text-purple-600">{analysis.ph_reading}</p>
+            </div>
+          )}
+          {analysis.last_watered && (
+            <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
+              <p className="text-xs text-gray-500">Last Watered</p>
+              <p className="text-sm font-semibold text-gray-700">
+                {new Date(analysis.last_watered).toLocaleDateString()}
+              </p>
+            </div>
+          )}
+          {analysis.moisture_reading == null && analysis.ph_reading == null && !analysis.last_watered && (
+            <p className="text-xs text-gray-400 italic">No readings recorded — click Edit to add them.</p>
+          )}
+        </div>
+      )}
 
       {/* User concerns */}
       {analysis.user_concerns && (
