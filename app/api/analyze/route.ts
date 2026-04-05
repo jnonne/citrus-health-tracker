@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { analyzeTree } from '@/lib/claude'
-import { createServiceClient } from '@/lib/supabase'
+import { createSupabaseServiceClient } from '@/lib/supabase-server'
 
 export const maxDuration = 60
 
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const finalMoisture = moistureReading ?? aiResult.extractedMoisture
     const finalPh = phReading ?? aiResult.extractedPh
 
-    const supabase = createServiceClient()
+    const supabase = await createSupabaseServiceClient()
 
     // Create analysis record
     const { data: analysis, error: analysisError } = await supabase

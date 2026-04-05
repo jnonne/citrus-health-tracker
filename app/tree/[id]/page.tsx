@@ -1,8 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
-import { createServiceClient, getPhotoUrl } from '@/lib/supabase'
+import { getPhotoUrl } from '@/lib/supabase'
 import AnalysisResult from '@/components/AnalysisResult'
+import HealthTimeline from '@/components/HealthTimeline'
 import { Tree, Analysis } from '@/lib/types'
 
 export const revalidate = 0
@@ -77,6 +78,9 @@ export default async function TreeDetailPage({ params }: { params: Promise<{ id:
           </Link>
         </div>
       </div>
+
+      {/* Health progress timeline */}
+      <HealthTimeline analyses={analyses} />
 
       {/* Analysis history */}
       <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">

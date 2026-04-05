@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { createSupabaseBrowserClient } from '@/lib/supabase'
 import { TreeSpecies } from '@/lib/types'
 
 const SPECIES_OPTIONS: { value: TreeSpecies; label: string }[] = [
@@ -21,6 +21,7 @@ const SPECIES_OPTIONS: { value: TreeSpecies; label: string }[] = [
 
 export default function NewTreePage() {
   const router = useRouter()
+  const supabase = createSupabaseBrowserClient()
   const [name, setName] = useState('')
   const [species, setSpecies] = useState<TreeSpecies>('navel_orange')
   const [location, setLocation] = useState('')
@@ -34,14 +35,21 @@ export default function NewTreePage() {
     setSaving(true)
     setError('')
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setError('Not signed in'); setSaving(false); return }
+
     const { data, error: dbError } = await supabase
       .from('trees')
-      .insert({ name: name.trim(), species, location: location.trim() || null, notes: notes.trim() || null })
+      .insert({ name: name.trim(), species, location: location.trim() || null, notes: notes.trim() || null, user_id: user.id })
       .select()
       .single()
 
     if (dbError) {
-      setError(dbError.message)
+      // Friendly message for duplicate name
+      const msg = dbError.code === '23505'
+        ? `You already have a tree named "${name.trim()}". Please choose a different name.`
+        : dbError.message
+      setError(msg)
       setSaving(false)
       return
     }
