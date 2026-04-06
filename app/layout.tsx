@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist } from 'next/font/google'
 import Header from '@/components/Header'
+import ThemeProvider from '@/components/ThemeProvider'
 import './globals.css'
 
 const geist = Geist({ subsets: ['latin'] })
@@ -24,12 +25,18 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${geist.className} bg-gray-50 min-h-screen`}>
-        <div className="max-w-2xl mx-auto px-4 pb-12">
-          <Header />
-          {children}
-        </div>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Runs before React hydrates — prevents flash of wrong theme */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme');var d=t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');})();` }} />
+      </head>
+      <body className={`${geist.className} bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200`}>
+        <ThemeProvider>
+          <div className="max-w-2xl mx-auto px-4 pb-12">
+            <Header />
+            {children}
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   )

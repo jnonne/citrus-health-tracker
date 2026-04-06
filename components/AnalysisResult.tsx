@@ -4,10 +4,34 @@ import { useState } from 'react'
 import { Analysis } from '@/lib/types'
 
 const URGENCY_CONFIG = {
-  good: { label: 'Healthy', bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200', icon: '✅' },
-  monitor: { label: 'Monitor', bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200', icon: '👁️' },
-  attention: { label: 'Needs Attention', bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-200', icon: '⚠️' },
-  urgent: { label: 'Urgent', bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200', icon: '🚨' },
+  good: {
+    label: 'Healthy',
+    bg: 'bg-green-100 dark:bg-green-900/30',
+    text: 'text-green-800 dark:text-green-300',
+    border: 'border-green-200 dark:border-green-700',
+    icon: '✅',
+  },
+  monitor: {
+    label: 'Monitor',
+    bg: 'bg-yellow-100 dark:bg-yellow-900/30',
+    text: 'text-yellow-800 dark:text-yellow-300',
+    border: 'border-yellow-200 dark:border-yellow-700',
+    icon: '👁️',
+  },
+  attention: {
+    label: 'Needs Attention',
+    bg: 'bg-orange-100 dark:bg-orange-900/30',
+    text: 'text-orange-800 dark:text-orange-300',
+    border: 'border-orange-200 dark:border-orange-700',
+    icon: '⚠️',
+  },
+  urgent: {
+    label: 'Urgent',
+    bg: 'bg-red-100 dark:bg-red-900/30',
+    text: 'text-red-800 dark:text-red-300',
+    border: 'border-red-200 dark:border-red-700',
+    icon: '🚨',
+  },
 }
 
 interface Props {
@@ -40,11 +64,7 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
     const res = await fetch(`/api/analysis/${analysis.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        moisture_reading: moisture,
-        ph_reading: ph,
-        last_watered: lastWatered,
-      }),
+      body: JSON.stringify({ moisture_reading: moisture, ph_reading: ph, last_watered: lastWatered }),
     })
     if (!res.ok) {
       const d = await res.json()
@@ -57,7 +77,6 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
     setEditing(false)
     setSaving(false)
 
-    // Auto-reanalyze when moisture or pH readings change
     if (moistureChanged || phChanged) {
       setReanalyzing(true)
       setReanalyzeError('')
@@ -90,7 +109,7 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
     <div className={`rounded-2xl border ${urgency.border} ${urgency.bg} p-5 space-y-4`}>
       {/* Header */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">{date}</span>
+        <span className="text-sm text-gray-500 dark:text-gray-400">{date}</span>
         <div className="flex items-center gap-2">
           <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${urgency.bg} ${urgency.text} border ${urgency.border}`}>
             {urgency.icon} {urgency.label}
@@ -98,7 +117,7 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
           {!editing && (
             <button
               onClick={() => setEditing(true)}
-              className="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded-lg hover:bg-white/60 transition-colors"
+              className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 px-2 py-1 rounded-lg hover:bg-white/60 dark:hover:bg-white/10 transition-colors"
               title="Edit readings"
             >
               ✏️ Edit
@@ -109,34 +128,34 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
 
       {/* Readings — view or edit */}
       {editing ? (
-        <div className="bg-white rounded-xl p-4 border border-gray-200 space-y-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Edit Readings</p>
+        <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600 space-y-3">
+          <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Edit Readings</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Moisture %</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Moisture %</label>
               <input
                 type="number" min="0" max="100" step="0.1"
                 value={moisture} onChange={e => setMoisture(e.target.value)}
                 placeholder="—"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">pH</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">pH</label>
               <input
                 type="number" min="0" max="14" step="0.1"
                 value={ph} onChange={e => setPh(e.target.value)}
                 placeholder="—"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Last Watered</label>
+              <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Last Watered</label>
               <input
                 type="date"
                 value={lastWatered}
                 onChange={e => setLastWatered(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
@@ -147,7 +166,7 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
               {saving ? 'Saving...' : 'Save'}
             </button>
             <button onClick={cancelEdit}
-              className="border border-gray-300 px-4 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+              className="border border-gray-300 dark:border-gray-600 px-4 py-1.5 rounded-lg text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
               Cancel
             </button>
           </div>
@@ -155,34 +174,34 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
       ) : (
         <div className="flex gap-4 flex-wrap">
           {analysis.moisture_reading !== null && analysis.moisture_reading !== undefined && (
-            <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
-              <p className="text-xs text-gray-500">Moisture</p>
-              <p className="text-2xl font-bold text-blue-600">{analysis.moisture_reading}%</p>
+            <div className="bg-white dark:bg-gray-800/70 rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-600 text-center">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Moisture</p>
+              <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{analysis.moisture_reading}%</p>
             </div>
           )}
           {analysis.ph_reading !== null && analysis.ph_reading !== undefined && (
-            <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
-              <p className="text-xs text-gray-500">pH</p>
-              <p className="text-2xl font-bold text-purple-600">{analysis.ph_reading}</p>
+            <div className="bg-white dark:bg-gray-800/70 rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-600 text-center">
+              <p className="text-xs text-gray-500 dark:text-gray-400">pH</p>
+              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{analysis.ph_reading}</p>
             </div>
           )}
           {analysis.last_watered && (
-            <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
-              <p className="text-xs text-gray-500">Last Watered</p>
-              <p className="text-sm font-semibold text-gray-700">
+            <div className="bg-white dark:bg-gray-800/70 rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-600 text-center">
+              <p className="text-xs text-gray-500 dark:text-gray-400">Last Watered</p>
+              <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 {new Date(analysis.last_watered).toLocaleDateString()}
               </p>
             </div>
           )}
           {analysis.moisture_reading == null && analysis.ph_reading == null && !analysis.last_watered && (
-            <p className="text-xs text-gray-400 italic">No readings recorded — click Edit to add them.</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 italic">No readings recorded — click Edit to add them.</p>
           )}
         </div>
       )}
 
       {/* Re-analysis status */}
       {reanalyzing && (
-        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-sm text-blue-700">
+        <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-xl px-4 py-3 text-sm text-blue-700 dark:text-blue-300">
           <svg className="animate-spin h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
@@ -191,23 +210,23 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
         </div>
       )}
       {reanalyzeError && (
-        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+        <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-xl px-4 py-3 text-sm text-red-700 dark:text-red-300">
           Re-analysis failed: {reanalyzeError}
         </div>
       )}
 
       {/* User concerns */}
       {analysis.user_concerns && (
-        <div className="bg-white rounded-xl p-3 border border-gray-200">
-          <p className="text-xs text-gray-500 mb-1">Your observations</p>
-          <p className="text-sm text-gray-700 italic">"{analysis.user_concerns}"</p>
+        <div className="bg-white dark:bg-gray-800/70 rounded-xl p-3 border border-gray-200 dark:border-gray-600">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your observations</p>
+          <p className="text-sm text-gray-700 dark:text-gray-300 italic">"{analysis.user_concerns}"</p>
         </div>
       )}
 
       {/* AI Summary */}
       <div>
         <h4 className={`text-sm font-semibold ${urgency.text} mb-1`}>AI Analysis</h4>
-        <p className="text-sm text-gray-800">{analysis.ai_summary}</p>
+        <p className="text-sm text-gray-800 dark:text-gray-200">{analysis.ai_summary}</p>
       </div>
 
       {/* Recommendations */}
@@ -216,8 +235,8 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
           <h4 className={`text-sm font-semibold ${urgency.text} mb-2`}>Recommendations</h4>
           <ul className="space-y-1">
             {analysis.ai_recommendations.map((rec, i) => (
-              <li key={i} className="flex gap-2 text-sm text-gray-800">
-                <span className="text-green-600 mt-0.5 shrink-0">•</span>
+              <li key={i} className="flex gap-2 text-sm text-gray-800 dark:text-gray-200">
+                <span className="text-green-600 dark:text-green-400 mt-0.5 shrink-0">•</span>
                 <span>{rec}</span>
               </li>
             ))}
@@ -228,14 +247,14 @@ export default function AnalysisResult({ analysis: initial, showPhotos = true }:
       {/* Photos */}
       {showPhotos && analysis.photos.length > 0 && (
         <div>
-          <h4 className="text-sm font-semibold text-gray-600 mb-2">Photos</h4>
+          <h4 className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Photos</h4>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {analysis.photos.map((photo) => (
               <a key={photo.id} href={photo.public_url} target="_blank" rel="noopener noreferrer">
                 <img
                   src={photo.public_url}
                   alt={photo.photo_type}
-                  className="w-full h-20 object-cover rounded-lg border border-gray-200 hover:opacity-80 transition-opacity"
+                  className="w-full h-20 object-cover rounded-lg border border-gray-200 dark:border-gray-600 hover:opacity-80 transition-opacity"
                 />
               </a>
             ))}

@@ -53,22 +53,44 @@ export default async function TreeDetailPage({ params }: { params: Promise<{ id:
 
   if (!tree) notFound()
 
+  // Find latest tree photo from analyses
+  const latestTreePhoto = analyses
+    .flatMap(a => a.photos)
+    .find(p => p.photo_type === 'tree')
+
   return (
     <div className="py-8">
-      {/* Header */}
+      {/* Back link */}
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/" className="text-gray-400 hover:text-gray-600 text-sm">← All Trees</Link>
+        <Link href="/" className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-sm">
+          ← All Trees
+        </Link>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{tree.name}</h1>
-            <p className="text-sm text-green-700 font-medium">{SPECIES_LABELS[tree.species] ?? tree.species}</p>
-            {tree.location && <p className="text-xs text-gray-500 mt-1">📍 {tree.location}</p>}
-            {tree.notes && <p className="text-xs text-gray-500 mt-2">{tree.notes}</p>}
+      {/* Tree info card */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-5 mb-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">{tree.name}</h1>
+            <p className="text-sm text-green-700 dark:text-green-400 font-medium">
+              {SPECIES_LABELS[tree.species] ?? tree.species}
+            </p>
+            {tree.location && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">📍 {tree.location}</p>
+            )}
+            {tree.notes && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">{tree.notes}</p>
+            )}
           </div>
-          <span className="text-4xl">🌿</span>
+          {latestTreePhoto ? (
+            <img
+              src={latestTreePhoto.public_url}
+              alt={tree.name}
+              className="w-20 h-20 rounded-xl object-cover border border-gray-200 dark:border-gray-600 shrink-0"
+            />
+          ) : (
+            <span className="text-4xl shrink-0">🌿</span>
+          )}
         </div>
         <div className="mt-4">
           <Link href={`/tree/${tree.id}/analyze`}>
@@ -83,12 +105,12 @@ export default async function TreeDetailPage({ params }: { params: Promise<{ id:
       <HealthTimeline analyses={analyses} />
 
       {/* Analysis history */}
-      <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+      <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
         Analysis History {analyses.length > 0 && `(${analyses.length})`}
       </h2>
 
       {analyses.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-gray-400 dark:text-gray-500">
           <p className="text-4xl mb-3">📋</p>
           <p className="text-sm">No analyses yet. Run your first analysis above.</p>
         </div>
