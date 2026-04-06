@@ -16,7 +16,6 @@ function LoginContent() {
 
   const supabase = createSupabaseBrowserClient()
 
-  // If already logged in, redirect
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) router.replace(next)
@@ -26,44 +25,33 @@ function LoginContent() {
   async function signIn(provider: 'google' | 'github') {
     setLoading(provider)
     setError('')
-
-    // Store trust preference in a short-lived cookie so the callback route can read it
     document.cookie = `trust_device_pref=${trustDevice ? '1' : '0'}; path=/; max-age=300; SameSite=Lax`
-
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
-
-    if (error) {
-      setError(error.message)
-      setLoading(null)
-    }
+    if (error) { setError(error.message); setLoading(null) }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 w-full max-w-sm">
-        {/* Logo / Title */}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-8 w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="text-5xl mb-3">🍋</div>
-          <h1 className="text-2xl font-bold text-gray-900">Citrus Tracker</h1>
-          <p className="text-sm text-gray-500 mt-1">Sign in to manage your trees</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Citrus Tracker</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Sign in to manage your trees</p>
           {trusted && (
-            <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-3">
+            <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 rounded-lg px-3 py-2 mt-3">
               Your session expired. Please sign in again.
             </p>
           )}
         </div>
 
-        {/* OAuth buttons */}
         <div className="space-y-3">
           <button
             onClick={() => signIn('google')}
             disabled={loading !== null}
-            className="w-full flex items-center justify-center gap-3 border border-gray-300 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+            className="w-full flex items-center justify-center gap-3 border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
           >
             {loading === 'google' ? (
               <span className="animate-spin h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full" />
@@ -81,7 +69,7 @@ function LoginContent() {
           <button
             onClick={() => signIn('github')}
             disabled={loading !== null}
-            className="w-full flex items-center justify-center gap-3 bg-gray-900 text-white rounded-xl px-4 py-3 text-sm font-medium hover:bg-gray-800 disabled:opacity-50 transition-colors"
+            className="w-full flex items-center justify-center gap-3 bg-gray-900 dark:bg-gray-950 text-white rounded-xl px-4 py-3 text-sm font-medium hover:bg-gray-800 dark:hover:bg-black disabled:opacity-50 transition-colors"
           >
             {loading === 'github' ? (
               <span className="animate-spin h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full" />
@@ -94,25 +82,22 @@ function LoginContent() {
           </button>
         </div>
 
-        {/* Trust this device */}
         <label className="flex items-center gap-3 mt-5 cursor-pointer group">
           <div
             onClick={() => setTrustDevice((v) => !v)}
-            className={`w-10 h-6 rounded-full transition-colors relative shrink-0 ${trustDevice ? 'bg-green-500' : 'bg-gray-300'}`}
+            className={`w-10 h-6 rounded-full transition-colors relative shrink-0 ${trustDevice ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}
           >
             <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${trustDevice ? 'translate-x-4' : ''}`} />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-700">Trust this device</p>
-            <p className="text-xs text-gray-400">Stay signed in for 30 days</p>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Trust this device</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">Stay signed in for 30 days</p>
           </div>
         </label>
 
-        {error && (
-          <p className="mt-4 text-sm text-red-600 text-center">{error}</p>
-        )}
+        {error && <p className="mt-4 text-sm text-red-600 dark:text-red-400 text-center">{error}</p>}
 
-        <p className="text-xs text-gray-400 text-center mt-6">
+        <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-6">
           Access is by invitation only.
         </p>
       </div>
@@ -122,7 +107,7 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="text-4xl animate-pulse">🍋</div></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900"><div className="text-4xl animate-pulse">🍋</div></div>}>
       <LoginContent />
     </Suspense>
   )

@@ -43,7 +43,7 @@ export default function TreeCard({ tree, latestPhotoUrl }: Props) {
             <img
               src={latestPhotoUrl}
               alt={tree.name}
-              className="w-16 h-16 rounded-xl object-cover border border-gray-200 dark:border-gray-600 shrink-0"
+              className="w-32 h-32 rounded-xl object-cover border border-gray-200 dark:border-gray-600 shrink-0"
             />
           ) : (
             <span className="text-4xl shrink-0">🌿</span>

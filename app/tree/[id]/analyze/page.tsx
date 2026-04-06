@@ -6,10 +6,10 @@ import PhotoUpload from '@/components/PhotoUpload'
 import { compressAll } from '@/lib/compressImage'
 
 const URGENCY_CONFIG = {
-  good: { label: 'Healthy', bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-800', icon: '✅' },
-  monitor: { label: 'Monitor', bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-800', icon: '👁️' },
-  attention: { label: 'Needs Attention', bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-800', icon: '⚠️' },
-  urgent: { label: 'Urgent', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-800', icon: '🚨' },
+  good:      { label: 'Healthy',         bg: 'bg-green-50 dark:bg-green-900/30',   border: 'border-green-200 dark:border-green-700',   text: 'text-green-800 dark:text-green-300',  icon: '✅' },
+  monitor:   { label: 'Monitor',         bg: 'bg-yellow-50 dark:bg-yellow-900/30', border: 'border-yellow-200 dark:border-yellow-700', text: 'text-yellow-800 dark:text-yellow-300', icon: '👁️' },
+  attention: { label: 'Needs Attention', bg: 'bg-orange-50 dark:bg-orange-900/30', border: 'border-orange-200 dark:border-orange-700', text: 'text-orange-800 dark:text-orange-300', icon: '⚠️' },
+  urgent:    { label: 'Urgent',          bg: 'bg-red-50 dark:bg-red-900/30',       border: 'border-red-200 dark:border-red-700',       text: 'text-red-800 dark:text-red-300',      icon: '🚨' },
 }
 
 interface AnalysisResponse {
@@ -45,11 +45,9 @@ export default function AnalyzePage({ params }: { params: Promise<{ id: string }
     setError('')
 
     try {
-      // Fetch tree name/species for analysis context
       const treeRes = await fetch(`/api/tree/${id}`)
       const tree = treeRes.ok ? await treeRes.json() : { name: 'Unknown', species: 'other' }
 
-      // Compress images before upload to stay under Claude's 5MB per-image limit
       const [compressedTreePhotos, compressedMeterPhotos] = await Promise.all([
         compressAll(treePhotos),
         compressAll(meterPhotos),
@@ -87,45 +85,44 @@ export default function AnalyzePage({ params }: { params: Promise<{ id: string }
       <div className="py-8 space-y-6">
         <div className={`rounded-2xl border ${urgency.border} ${urgency.bg} p-5`}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-bold text-gray-900">Analysis Complete</h2>
+            <h2 className="font-bold text-gray-900 dark:text-gray-100">Analysis Complete</h2>
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${urgency.bg} ${urgency.text} border ${urgency.border}`}>
               {urgency.icon} {urgency.label}
             </span>
           </div>
 
-          {/* Confirmed readings */}
           {(result.finalMoisture !== undefined || result.finalPh !== undefined) && (
             <div className="flex gap-3 mb-4">
               {result.finalMoisture !== undefined && (
-                <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
-                  <p className="text-xs text-gray-500">Moisture</p>
-                  <p className="text-2xl font-bold text-blue-600">{result.finalMoisture}%</p>
+                <div className="bg-white dark:bg-gray-800 rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-600 text-center">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Moisture</p>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{result.finalMoisture}%</p>
                   {result.extractedMoisture !== undefined && (
-                    <p className="text-xs text-gray-400">read from photo</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">read from photo</p>
                   )}
                 </div>
               )}
               {result.finalPh !== undefined && (
-                <div className="bg-white rounded-xl px-4 py-3 border border-gray-200 text-center">
-                  <p className="text-xs text-gray-500">pH</p>
-                  <p className="text-2xl font-bold text-purple-600">{result.finalPh}</p>
+                <div className="bg-white dark:bg-gray-800 rounded-xl px-4 py-3 border border-gray-200 dark:border-gray-600 text-center">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">pH</p>
+                  <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{result.finalPh}</p>
                   {result.extractedPh !== undefined && (
-                    <p className="text-xs text-gray-400">read from photo</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">read from photo</p>
                   )}
                 </div>
               )}
             </div>
           )}
 
-          <p className="text-sm text-gray-800 mb-4">{result.summary}</p>
+          <p className="text-sm text-gray-800 dark:text-gray-200 mb-4">{result.summary}</p>
 
           {result.recommendations.length > 0 && (
             <div>
               <h3 className={`text-sm font-semibold ${urgency.text} mb-2`}>Recommendations</h3>
               <ul className="space-y-1">
                 {result.recommendations.map((rec, i) => (
-                  <li key={i} className="flex gap-2 text-sm text-gray-800">
-                    <span className="text-green-600 mt-0.5 shrink-0">•</span>
+                  <li key={i} className="flex gap-2 text-sm text-gray-800 dark:text-gray-200">
+                    <span className="text-green-600 dark:text-green-400 mt-0.5 shrink-0">•</span>
                     <span>{rec}</span>
                   </li>
                 ))}
@@ -147,10 +144,10 @@ export default function AnalyzePage({ params }: { params: Promise<{ id: string }
   return (
     <div className="py-8">
       <div className="flex items-center gap-3 mb-8">
-        <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600 text-sm">
+        <button onClick={() => router.back()} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-sm">
           ← Back
         </button>
-        <h1 className="text-xl font-bold text-gray-900">New Analysis</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">New Analysis</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -168,69 +165,53 @@ export default function AnalyzePage({ params }: { params: Promise<{ id: string }
           multiple={false}
         />
 
-        {/* Readings */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Moisture % (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Moisture % (optional)</label>
             <input
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              value={moisture}
-              onChange={(e) => setMoisture(e.target.value)}
+              type="number" min="0" max="100" step="0.1"
+              value={moisture} onChange={(e) => setMoisture(e.target.value)}
               placeholder="e.g., 45"
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">pH (optional)</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">pH (optional)</label>
             <input
-              type="number"
-              min="0"
-              max="14"
-              step="0.1"
-              value={ph}
-              onChange={(e) => setPh(e.target.value)}
+              type="number" min="0" max="14" step="0.1"
+              value={ph} onChange={(e) => setPh(e.target.value)}
               placeholder="e.g., 6.5"
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
         </div>
 
-        {/* Last watered */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Date Last Watered</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Date Last Watered</label>
           <input
-            type="date"
-            value={lastWatered}
-            onChange={(e) => setLastWatered(e.target.value)}
-            max={today}
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            type="date" value={lastWatered} onChange={(e) => setLastWatered(e.target.value)} max={today}
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
           />
         </div>
 
-        {/* Concerns */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Observations or Concerns (optional)</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Observations or Concerns (optional)</label>
           <textarea
-            value={concerns}
-            onChange={(e) => setConcerns(e.target.value)}
+            value={concerns} onChange={(e) => setConcerns(e.target.value)}
             placeholder="e.g., leaves are yellowing, some dropping, saw insects on the trunk..."
             rows={3}
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+            className="w-full border border-gray-300 dark:border-gray-600 rounded-xl px-4 py-3 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
           />
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-700">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-xl p-4 text-sm text-red-700 dark:text-red-300">
             {error}
           </div>
         )}
 
         <button
-          type="submit"
-          disabled={loading}
+          type="submit" disabled={loading}
           className="w-full bg-green-600 text-white py-3 rounded-xl font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? (
