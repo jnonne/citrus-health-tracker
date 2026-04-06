@@ -43,7 +43,23 @@ export async function analyzeTree(input: AnalysisInput): Promise<AnalysisOutput>
 
   const meterSection =
     input.meterPhotoBase64s.length > 0
-      ? `Meter photos are included — extract the moisture and pH values from them if visible.`
+      ? `Meter photos are included. Read the analog dial gauges carefully using these rules:
+
+SOIL MOISTURE gauge (top dial, scale 1–10, labeled DRY to WET):
+- Locate the RED needle and read the number it points to on the 1–10 arc.
+- Multiply that number by 10 to get the moisture percentage.
+  Examples: needle at 1 = 10%, needle at 5 = 50%, needle at 5.5 = 55%, needle at 10 = 100%.
+- Report "extractedMoisture" as that percentage value (e.g. 55, not 5.5).
+- Ignore the blue indicator below the dial — only read the red needle on the top arc.
+
+SOIL pH gauge (bottom dial, scale 1–10, labeled ACID to ALKALINE):
+- Locate the RED needle and read the number it points to on the arc.
+- The number on the dial IS the pH value directly (e.g. needle at 5.5 = pH 5.5, needle at 7 = pH 7.0).
+- Note: the numbers on this dial may run right-to-left (10=acid on left, 1=alkaline on right, or vice versa depending on meter model). Read whichever number the needle points at.
+- Report "extractedPh" as that pH value (e.g. 5.5).
+- Ignore the blue indicator below the dial — only read the red needle on the top arc.
+
+If either gauge is out of frame or unreadable, return null for that value.`
       : `No meter photos provided.`
 
   const manualReadings: string[] = []
@@ -65,8 +81,8 @@ ${input.treePhotoBase64s.length > 0 ? `${input.treePhotoBase64s.length} tree pho
 
 Respond with a JSON object in this exact format:
 {
-  "extractedMoisture": <number or null — moisture % read from meter photo, null if not visible>,
-  "extractedPh": <number or null — pH read from meter photo, null if not visible>,
+  "extractedMoisture": <number or null — moisture percentage (dial reading × 10), e.g. needle at 5.5 → 55, null if not visible>,
+  "extractedPh": <number or null — pH value directly from dial, e.g. needle at 5.5 → 5.5, null if not visible>,
   "summary": "<2-3 sentence plain-English summary of overall tree health>",
   "recommendations": [
     "<specific actionable recommendation 1>",
