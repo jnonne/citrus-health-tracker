@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { getPhotoUrl } from '@/lib/supabase'
 import AnalysisResult from '@/components/AnalysisResult'
 import HealthTimeline from '@/components/HealthTimeline'
+import CareLogSection from '@/components/CareLogSection'
 import { Tree, Analysis } from '@/lib/types'
 
 export const revalidate = 0
@@ -103,6 +104,9 @@ export default async function TreeDetailPage({ params }: { params: Promise<{ id:
 
       {/* Health progress timeline */}
       <HealthTimeline analyses={analyses} />
+
+      {/* Watering & fertilizer history */}
+      <CareLogSection treeId={tree.id} />
 
       {/* Analysis history */}
       <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
