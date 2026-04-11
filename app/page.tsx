@@ -6,6 +6,14 @@ import { Tree } from '@/lib/types'
 
 export const revalidate = 0
 
+export interface TreeSummary {
+  moisture_reading?: number | null
+  ph_reading?: number | null
+  ai_urgency: 'good' | 'monitor' | 'attention' | 'urgent'
+  ai_recommendations: string[]
+  photoUrl?: string
+}
+
 async function getTrees(): Promise<Tree[]> {
   const supabase = await createSupabaseServerClient()
   const { data, error } = await supabase
@@ -16,49 +24,53 @@ async function getTrees(): Promise<Tree[]> {
   return data ?? []
 }
 
-async function getLatestTreePhotos(treeIds: string[]): Promise<Record<string, string>> {
+async function getLatestSummaries(treeIds: string[]): Promise<Record<string, TreeSummary>> {
   if (!treeIds.length) return {}
   const supabase = await createSupabaseServerClient()
 
-  // Get latest analysis ID per tree
+  // Fetch latest analysis per tree (just the fields we need for the card)
   const { data: analyses } = await supabase
     .from('analyses')
-    .select('id, tree_id')
+    .select('id, tree_id, moisture_reading, ph_reading, ai_urgency, ai_recommendations')
     .in('tree_id', treeIds)
     .order('created_at', { ascending: false })
 
   if (!analyses?.length) return {}
 
-  const latestByTree: Record<string, string> = {}
+  // Keep only the most recent analysis per tree
+  const latestByTree: Record<string, typeof analyses[0]> = {}
   for (const a of analyses) {
-    if (!latestByTree[a.tree_id]) latestByTree[a.tree_id] = a.id
+    if (!latestByTree[a.tree_id]) latestByTree[a.tree_id] = a
   }
 
-  // Get one tree-type photo for each of those analyses
-  const analysisIds = Object.values(latestByTree)
+  // Fetch one tree-type photo per latest analysis
+  const analysisIds = Object.values(latestByTree).map(a => a.id)
   const { data: photos } = await supabase
     .from('analysis_photos')
     .select('analysis_id, storage_path')
     .in('analysis_id', analysisIds)
     .eq('photo_type', 'tree')
 
-  if (!photos?.length) return {}
-
-  const result: Record<string, string> = {}
-  for (const [treeId, analysisId] of Object.entries(latestByTree)) {
-    const photo = photos.find(p => p.analysis_id === analysisId)
-    if (photo) result[treeId] = getPhotoUrl(photo.storage_path)
+  const result: Record<string, TreeSummary> = {}
+  for (const [treeId, analysis] of Object.entries(latestByTree)) {
+    const photo = photos?.find(p => p.analysis_id === analysis.id)
+    result[treeId] = {
+      moisture_reading: analysis.moisture_reading,
+      ph_reading: analysis.ph_reading,
+      ai_urgency: analysis.ai_urgency,
+      ai_recommendations: analysis.ai_recommendations ?? [],
+      photoUrl: photo ? getPhotoUrl(photo.storage_path) : undefined,
+    }
   }
   return result
 }
 
 export default async function HomePage() {
   const trees = await getTrees()
-  const treePhotos = await getLatestTreePhotos(trees.map(t => t.id))
+  const summaries = await getLatestSummaries(trees.map(t => t.id))
 
   return (
     <div className="py-8">
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Citrus Tracker</h1>
@@ -71,7 +83,6 @@ export default async function HomePage() {
         </Link>
       </div>
 
-      {/* Tree list */}
       {trees.length === 0 ? (
         <div className="text-center py-20">
           <div className="text-6xl mb-4">🍋</div>
@@ -88,7 +99,7 @@ export default async function HomePage() {
       ) : (
         <div className="space-y-3">
           {trees.map((tree) => (
-            <TreeCard key={tree.id} tree={tree} latestPhotoUrl={treePhotos[tree.id]} />
+            <TreeCard key={tree.id} tree={tree} summary={summaries[tree.id]} />
           ))}
         </div>
       )}
